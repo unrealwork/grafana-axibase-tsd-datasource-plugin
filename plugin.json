@@ -1,0 +1,35 @@
+{
+  "name": "Axibase TSD",
+  "type": "datasource",
+  "id": "atsd",
+  "partials": {
+    "config": "app/plugins/datasource/atsd/partials/config.html"
+  },
+  "metrics": true,
+  "annotations": false,
+  "info": {
+    "description": "Axibase Time Series Data source plugin",
+    "author": {
+      "name": "Axibase Inc.",
+      "url": "http://axibase.com/"
+    },
+    "logos": {
+    },
+    "links": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/grafana/simple-json-datasource"
+      },
+      {
+        "name": "MIT License",
+        "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"
+      }
+    ],
+    "version": "0.0.1",
+    "updated": "2016-05-11"
+  },
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": []
+  }
+}
