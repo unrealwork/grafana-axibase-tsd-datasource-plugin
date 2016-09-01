@@ -2,9 +2,9 @@
   "name": "Axibase TSD",
   "type": "datasource",
   "id": "atsd",
-  "partials": {
-    "config": "app/plugins/datasource/atsd/partials/config.html"
-  },
+
+  "staticRoot": ".",
+
   "metrics": true,
   "annotations": false,
   "info": {

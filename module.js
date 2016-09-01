@@ -1,26 +1,26 @@
 define([
-    './datasource',
-    './queryCtrl'
-  ],
-  function (AtsdDatasource, AtsdQueryCtrl) {
-    'use strict';
+        './datasource',
+        './queryCtrl'
+    ],
+    function (AtsdDatasource, AtsdQueryCtrl) {
+        'use strict';
 
-    var InfluxDB08ConfigCtrl = function () {
-    };
+        var AtsdConfigCtrl = function () {
+        };
 
-    InfluxDB08ConfigCtrl.templateUrl = "partials/config.html";
+        AtsdConfigCtrl.templateUrl = "partials/config.html";
 
-    var InfluxDB08QueryOptionsCtrl = function () {
-    };
+        var InfluxDB08QueryOptionsCtrl = function () {
+        };
 
-    var InfluxDB08AnnotationsCtrl = function () {
-    };
+        var InfluxDB08AnnotationsCtrl = function () {
+        };
 
-    return {
-      'Datasource': AtsdDatasource,
-      'QueryCtrl': AtsdQueryCtrl,
-      'ConfigCtrl': InfluxDB08ConfigCtrl,
-      'QueryOptionsCtrl': InfluxDB08QueryOptionsCtrl,
-      'AnnotationsQueryCtrl': InfluxDB08AnnotationsCtrl
-    };
-  });
+        return {
+            'Datasource': AtsdDatasource,
+            'QueryCtrl': AtsdQueryCtrl,
+            'ConfigCtrl': AtsdConfigCtrl,
+            'QueryOptionsCtrl': InfluxDB08QueryOptionsCtrl,
+            'AnnotationsQueryCtrl': InfluxDB08AnnotationsCtrl
+        };
+    });
