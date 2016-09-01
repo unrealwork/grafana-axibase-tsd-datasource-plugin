@@ -2,9 +2,7 @@
   "name": "Axibase TSD",
   "type": "datasource",
   "id": "atsd",
-
   "staticRoot": ".",
-
   "metrics": true,
   "annotations": false,
   "info": {
@@ -13,7 +11,14 @@
       "name": "Axibase Inc.",
       "url": "http://axibase.com/"
     },
+    "keywords": [
+      "axibase",
+      "time-series",
+      "atsd"
+    ],
     "logos": {
+      "small": "img/axibase_logo_small.svg",
+      "large": "img/axibase_logo_large.svg"
     },
     "links": [
       {

@@ -1,6 +1,6 @@
 define([
         './datasource',
-        './queryCtrl'
+        './query_ctrl'
     ],
     function (AtsdDatasource, AtsdQueryCtrl) {
         'use strict';
