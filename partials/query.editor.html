@@ -1,16 +1,23 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="false" has-text-edit-mode="true">
+    <!--Row format-->
     <div class="gf-form" ng-if="ctrl.target.rawQuery">
         <textarea class="gf-form-input" rows="5" ng-model="ctrl.target.target" spellcheck="false"
                   ng-blur="ctrl.onChangeInternal()"/>
     </div>
+    <!--Expanded view-->
 
+
+    <!--Entity row-->
     <div class="gf-form gf-form--grow">
         <label class="gf-form-label query-keyword width-10">ENTITY</label>
         <input type="text"
                class="gf-form-input"
+               bs-typeahead="ctrl.suggestEntites"
                spellcheck='false'
                placeholder="metric name">
     </div>
+
+    <!--Metric row-->
     <div class="gf-form gf-form--grow">
         <label class="gf-form-label query-keyword width-10">METRIC</label>
         <input type="text"
@@ -18,13 +25,18 @@
                spellcheck='false'
                placeholder="alias patterns">
     </div>
+
+    <!--Aggregation row-->
     <div class="gf-form gf-form--grow">
         <label class="gf-form-label query-keyword width-10">AGGREGATION</label>
         <div class="gf-form-select-wrapper">
-            <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.resultFormat"
-                    ng-options="f.value as f.text for f in ctrl.resultFormats" ng-change="ctrl.refresh()"></select>
+            <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.aggregation"
+                    ng-options="item.value as item.label for item in ctrl.aggregateFunctions"
+                    ng-change="ctrl.update()"></select>
         </div>
     </div>
+
+    <!--Tag editor row-->
     <div class="gf-form gf-form--grow">
         <label class="gf-form-label query-keyword width-10">TAG EDITOR</label>
         <div class="gf-form" ng-repeat="segment in ctrl.tagSegments">
