@@ -11,36 +11,33 @@ define([
 
             function AtsdQueryCtrl($scope, $injector) {
                 _super.call(this, $scope, $injector);
+                self = this;
+                this.loaded = true;
                 this.scope = $scope;
+                this.scope.suggestEntitiesList = function (name) {
+                    console.log(name);
+                    return self.datasource.getEntities({
+                        expression: 'name LIKE \'*' + name + '*\'',
+                    });
+                };
                 initAggregateOptions(this);
                 this.target = {
                     mertic: undefined,
                     entity: undefined,
                     aggregation: this.aggregateFunctions[0].value
                 };
-                self = this;
+
+                this.suggestEntities = [];
+                this.scope.suggestEntitiesList("").then(function (result) {
+                    result.forEach(function (item) {
+                        self.suggestEntities.push(item.name);
+                    });
+                    self.loaded = false;
+                });
             }
 
             AtsdQueryCtrl.prototype = Object.create(_super.prototype);
             AtsdQueryCtrl.prototype.constructor = AtsdQueryCtrl;
-
-            AtsdQueryCtrl.prototype.update = function () {
-                console.log(self.target.aggregation);
-                console.log(this.scope.selected);
-            };
-
-
-            AtsdQueryCtrl.prototype.suggestEntites = function (query, callback) {
-                self.scope.datasource
-                    .suggestEntities(query)
-                    .then(callback);
-            };
-
-            AtsdQueryCtrl.prototype.suggestMetrics = function (query, callback) {
-                self.scope.datasource
-                    .suggestMetrics($scope.target.entity, query)
-                    .then(callback);
-            };
 
             AtsdQueryCtrl.prototype.getOptions = function () {
                 return this.datasource.metricFindQuery(this.target)

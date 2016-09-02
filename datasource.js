@@ -1,25 +1,25 @@
 define([
         'angular',
         'lodash',
-        'app/core/utils/datemath',
+        'app/core/utils/datemath'
     ],
     function (angular, _, dateMath) {
         'use strict';
-
+        var self;
 
         function AtsdDatasource(instanceSettings, $q, backendSrv, templateSrv) {
             this.type = 'atsd';
             console.log(instanceSettings);
             this.url = instanceSettings.url;
             this.basicAuth = instanceSettings.basicAuth;
-
             this.name = instanceSettings.name;
             this.supportMetrics = true;
-
+            this.backendSrv = backendSrv;
             this.cache = 300000;
-
             this.recent = {};
             this.recentTags = {};
+            this.q = $q;
+            self = this;
         }
 
         AtsdDatasource.prototype.dropCache = function () {
@@ -43,7 +43,7 @@ define([
             var queries = _.compact(qs);
 
             if (_.isEmpty(queries)) {
-                var d = $q.defer();
+                var d = self.q.defer();
                 d.resolve({data: []});
                 return d.promise;
             }
@@ -149,7 +149,7 @@ define([
             });
 
             if (tsQueries.length === 0) {
-                var d = $q.defer();
+                var d = self.q.defer();
                 d.resolve({data: undefined});
                 return d.promise;
             }
@@ -172,6 +172,22 @@ define([
             });
         };
 
+
+        AtsdDatasource.prototype.getEntities = function (params) {
+            var options = {
+                method: 'GET',
+                url: self.url + 'api/v1/entities',
+                params: params,
+                headers: {
+                    Authorization: self.basicAuth
+                }
+            };
+            return self.backendSrv.datasourceRequest(options).then(function (result) {
+                return result.data;
+            });
+        };
+
+
         AtsdDatasource.prototype.suggestEntities = function () {
             var so = this;
 
@@ -186,12 +202,13 @@ define([
                 var options = {
                     method: 'GET',
                     url: so.url + '/api/v1/entities',
+
                     headers: {
                         Authorization: so.basicAuth
                     }
                 };
 
-                return backendSrv.datasourceRequest(options).then(function (result) {
+                return self.backendSrv.datasourceRequest(options).then(function (result) {
                     if (result.status !== 200) {
                         delete so.recent['entities'];
                         return [];
@@ -208,7 +225,7 @@ define([
                     return names;
                 });
             } else {
-                var d = $q.defer();
+                var d = self.q.defer();
                 d.resolve(so.recent['entities'].value);
                 return d.promise;
             }
@@ -257,7 +274,7 @@ define([
                 });
 
             } else {
-                var d = $q.defer();
+                var d = self.q.defer();
                 d.resolve(so.recent[key].value);
                 return d.promise;
             }
@@ -298,7 +315,7 @@ define([
 
             var d;
             if (entity === '' || metric === '') {
-                d = $q.defer();
+                d = self.q.defer();
                 d.resolve({data: {}});
                 return d.promise;
             }
@@ -333,7 +350,7 @@ define([
                     return result;
                 });
             } else {
-                d = $q.defer();
+                d = self.q.defer();
                 d.resolve(so.recentTags[metric][entity].value);
                 return d.promise;
             }
@@ -583,4 +600,5 @@ define([
 
         return AtsdDatasource;
 
-    });
+    })
+;
