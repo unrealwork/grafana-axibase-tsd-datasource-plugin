@@ -9,35 +9,58 @@ define([
         var AtsdQueryCtrl = (function (_super) {
             var self;
 
-            function AtsdQueryCtrl($scope, $injector) {
-                _super.call(this, $scope, $injector);
-                self = this;
-                this.loaded = true;
-                this.scope = $scope;
-                this.scope.suggestEntitiesList = function (name) {
-                    console.log(name);
-                    return self.datasource.getEntities({
-                        expression: 'name LIKE \'*' + name + '*\'',
-                    });
-                };
-                initAggregateOptions(this);
-                this.target = {
-                    mertic: undefined,
-                    entity: undefined,
-                    aggregation: this.aggregateFunctions[0].value
-                };
-
-                this.suggestEntities = [];
-                this.scope.suggestEntitiesList("").then(function (result) {
-                    result.forEach(function (item) {
-                        self.suggestEntities.push(item.name);
-                    });
-                    self.loaded = false;
+            function suggestEntitiesList() {
+                return self.datasource.getEntities({
+                    expression: 'name LIKE \'*\'',
                 });
             }
 
+            function AtsdQueryCtrl($scope, $injector) {
+                _super.call(this, $scope, $injector);
+                console.log(this.target);
+                self = this;
+
+                this.suggest = {
+                    metrics: [],
+                    entities: [],
+                    aggregations: aggregateOptions()
+                };
+
+                this.target.metric = undefined;
+                this.target.entity = undefined;
+                this.target.aggregation = this.suggest.aggregations[0]
+
+
+                this.state = {
+                    isLoaded: true
+                };
+
+                this.scope = $scope;
+
+
+                suggestEntitiesList().then(function (result) {
+                    result.forEach(function (item) {
+                        self.suggest.entities.push(item.name);
+                    });
+                    self.state.isLoaded = false;
+                });
+            }
+
+
             AtsdQueryCtrl.prototype = Object.create(_super.prototype);
             AtsdQueryCtrl.prototype.constructor = AtsdQueryCtrl;
+
+            AtsdQueryCtrl.prototype.entityBlur = function ($event) {
+                self.panelCtrl.refresh();
+                console.log($event);
+                this.datasource.getMetrics(this.target.entity, {}).then(function (result) {
+                    console.log(result);
+                    self.suggest.metrics.length = 0;
+                    result.forEach(function (item) {
+                        self.suggest.metrics.push(item.name);
+                    })
+                })
+            };
 
             AtsdQueryCtrl.prototype.getOptions = function () {
                 return this.datasource.metricFindQuery(this.target)
@@ -62,30 +85,8 @@ define([
              *
              * @param scope
              */
-            function initAggregateOptions(instance) {
-                var statisctics = {
-                    'Detail': 'detail',
-                    'Count': 'count',
-                    'Minimum': 'min',
-                    'Maximum': 'max',
-                    'Average': 'avg',
-                    'Median': 'median',
-                    'Sum': 'sum',
-                    'Percentile 99.9%': 'percentile_999',
-                    'Percentile 99.5%': 'percentile_995',
-                    'Percentile 99%': 'percentile_99',
-                    'Percentile 95%': 'percentile_95',
-                    'Percentile 90%': 'percentile_90',
-                    'Percentile 75%': 'percentile_75',
-                    'First value': 'first',
-                    'Last value': 'last',
-                    'Delta': 'delta',
-                    'Weighted average': 'wavg',
-                    'Weighted time average': 'wtavg',
-                    'Standard deviation': 'standard_deviation'
-                };
-
-                instance.aggregateFunctions = [{
+            function aggregateOptions() {
+                return [{
                     id: 1,
                     label: 'Detail',
                     value: {
@@ -100,6 +101,7 @@ define([
                 }
                 ];
             }
+
 
             return AtsdQueryCtrl;
         })(sdk.QueryCtrl);

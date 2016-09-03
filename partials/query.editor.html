@@ -1,5 +1,5 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="false" has-text-edit-mode="true">
-    <fieldset ng-disabled="ctrl.loaded">
+    <fieldset ng-disabled="ctrl.state.isLoaded">
         <!--Row format-->
         <div class="gf-form" ng-if="ctrl.target.rawQuery">
         <textarea class="gf-form-input" rows="5" ng-model="ctrl.target.target" spellcheck="false"
@@ -14,14 +14,10 @@
             <input type="text"
                    class="gf-form-input"
                    ng-model="ctrl.target.entity"
-                   bs-typeahead="ctrl.suggestEntities"
+                   ng-blur="ctrl.entityBlur($event)"
+                   bs-typeahead="ctrl.suggest.entities"
                    spellcheck='false'
                    placeholder="entity name">
-            <!--  <input type="text" ng-model="asyncSelected" placeholder="Locations loaded via $http"
-                     uib-typeahead="address for address in getLocation($viewValue)" typeahead-loading="loadingLocations"
-                     typeahead-no-results="noResults"
-                     class="form-control ng-valid ng-not-empty ng-dirty ng-valid-parse ng-touched" aria-autocomplete="list"
-                     aria-expanded="false" aria-owns="typeahead-81-5961">-->
         </div>
 
         <!--Metric row-->
@@ -29,7 +25,9 @@
             <label class="gf-form-label query-keyword width-10">METRIC</label>
             <input type="text"
                    class="gf-form-input"
+                   ng-model="ctrl.target.metric"
                    spellcheck='false'
+                   bs-typeahead="ctrl.suggest.metrics"
                    placeholder="alias patterns">
         </div>
 
@@ -37,23 +35,13 @@
         <div class="gf-form gf-form--grow">
             <label class="gf-form-label query-keyword width-10">AGGREGATION</label>
             <div class="gf-form-select-wrapper">
-                <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.aggregation"
-                        ng-options="item.value as item.label for item in ctrl.aggregateFunctions"
-                        ng-change="ctrl.update()"></select>
+                <select class="gf-form-input gf-size-auto"
+                        ng-model="ctrl.target.aggregation"
+                        ng-options="item.value as item.label for item in ctrl.suggest.aggregations"
+                >
+                </select>
             </div>
         </div>
 
-        <!--Tag editor row-->
-        <div class="gf-form gf-form--grow">
-            <label class="gf-form-label query-keyword width-10">TAG EDITOR</label>
-            <div class="gf-form" ng-repeat="segment in ctrl.tagSegments">
-                <metric-segment segment="segment" get-options="ctrl.getTagsOrValues(segment, $index)"
-                                on-change="ctrl.tagSegmentUpdated(segment, $index)"></metric-segment>
-            </div>
-
-            <div class="gf-form gf-form--grow">
-                <div class="gf-form-label gf-form-label--grow"></div>
-            </div>
-        </div>
     </fieldset>
 </query-editor-row>

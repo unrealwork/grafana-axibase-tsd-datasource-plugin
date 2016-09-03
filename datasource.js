@@ -13,6 +13,8 @@ define([
             this.url = instanceSettings.url;
             this.basicAuth = instanceSettings.basicAuth;
             this.name = instanceSettings.name;
+            this.templateSrv = templateSrv;
+            this.backendSrv = backendSrv;
             this.supportMetrics = true;
             this.backendSrv = backendSrv;
             this.cache = 300000;
@@ -167,7 +169,7 @@ define([
                 }
             };
 
-            return backendSrv.datasourceRequest(options).then(function (result) {
+            return self.backendSrv.datasourceRequest(options).then(function (result) {
                 return result;
             });
         };
@@ -187,222 +189,17 @@ define([
             });
         };
 
-
-        AtsdDatasource.prototype.suggestEntities = function () {
-            var so = this;
-
-            if (!('entities' in so.recent) ||
-                (new Date()).getTime() - so.recent['entities'].time > so.cache) {
-
-                so.recent['entities'] = {
-                    time: (new Date()).getTime(),
-                    value: []
-                };
-
-                var options = {
-                    method: 'GET',
-                    url: so.url + '/api/v1/entities',
-
-                    headers: {
-                        Authorization: so.basicAuth
-                    }
-                };
-
-                return self.backendSrv.datasourceRequest(options).then(function (result) {
-                    if (result.status !== 200) {
-                        delete so.recent['entities'];
-                        return [];
-                    }
-
-                    var names = [];
-                    _.each(result.data, function (entity) {
-                        names.push(entity.name);
-                    });
-
-                    console.log('entities: ' + JSON.stringify(names));
-                    so.recent['entities'].value = names;
-
-                    return names;
-                });
-            } else {
-                var d = self.q.defer();
-                d.resolve(so.recent['entities'].value);
-                return d.promise;
-            }
-        };
-
-        AtsdDatasource.prototype.suggestMetrics = function (entity) {
-            var so = this;
-
-            entity = entity !== undefined ? entity : '';
-
-            var key = entity !== '' ?
-            'entities/' + entity + '/metrics' :
-                'metrics';
-
-            if (!(key in so.recent) ||
-                (new Date()).getTime() - so.recent[key].time > so.cache) {
-
-                so.recent[key] = {
-                    time: (new Date()).getTime(),
-                    value: []
-                };
-
-                var options = {
-                    method: 'GET',
-                    url: so.url + '/api/v1/' + key,
-                    headers: {
-                        Authorization: so.basicAuth
-                    }
-                };
-
-                return backendSrv.datasourceRequest(options).then(function (result) {
-                    if (result.status !== 200) {
-                        delete so.recent[key];
-                        return [];
-                    }
-
-                    var names = [];
-                    _.each(result.data, function (metric) {
-                        names.push(metric.name);
-                    });
-
-                    console.log('metrics: ' + JSON.stringify(names));
-                    so.recent[key].value = names;
-
-                    return names;
-                });
-
-            } else {
-                var d = self.q.defer();
-                d.resolve(so.recent[key].value);
-                return d.promise;
-            }
-        };
-
-        AtsdDatasource.prototype.suggestNextSegment = function (entity, segments) {
-            segments = segments !== undefined ? segments : [];
-            var query = segments.length > 0 ? segments.join('.') + '.' : '';
-
-            return this.suggestMetrics(entity, query).then(function (names) {
-                var tokens = [];
-
-                var names_l = [];
-
-                _.each(names, function (name) {
-                    if (name.substr(0, query.length) === query) {
-                        names_l.push(name);
-                    }
-                });
-
-                tokens = _.map(names_l, function (name) {
-                    return name.substr(query.length, name.length).split('.')[0];
-                });
-
-                tokens = tokens.filter(function (elem, pos) {
-                    return tokens.indexOf(elem) === pos;
-                });
-
-                return tokens;
-            });
-        };
-
-        AtsdDatasource.prototype._queryTags = function (entity, metric) {
-            var so = this;
-
-            entity = entity !== undefined ? entity : '';
-            metric = metric !== undefined ? metric : '';
-
-            var d;
-            if (entity === '' || metric === '') {
-                d = self.q.defer();
-                d.resolve({data: {}});
-                return d.promise;
-            }
-
-            if (!(metric in so.recentTags) || !(entity in so.recentTags[metric]) ||
-                (new Date()).getTime() - so.recentTags[metric][entity].time > so.cache) {
-
-                if (!(metric in so.recentTags)) {
-                    so.recentTags[metric] = {};
+        AtsdDatasource.prototype.getMetrics = function (entity, params) {
+            var options = {
+                method: 'GET',
+                url: self.url + 'api/v1/entities/' + entity + '/metrics',
+                params: params,
+                headers: {
+                    Authorization: self.basicAuth
                 }
-
-                so.recentTags[metric][entity] = {
-                    time: (new Date()).getTime(),
-                    value: {}
-                };
-
-                var options = {
-                    method: 'GET',
-                    url: so.url + '/api/v1/metrics/' + metric + '/entity-and-tags',
-                    headers: {
-                        Authorization: so.basicAuth
-                    }
-                };
-
-                return backendSrv.datasourceRequest(options).then(function (result) {
-                    if (result.status !== 200) {
-                        delete so.recentTags[metric][entity];
-                        return {data: {}};
-                    }
-
-                    so.recentTags[metric][entity].value = result;
-                    return result;
-                });
-            } else {
-                d = self.q.defer();
-                d.resolve(so.recentTags[metric][entity].value);
-                return d.promise;
-            }
-        };
-
-        AtsdDatasource.prototype._suggestTags = function (entity, metric, tags_known) {
-            tags_known = tags_known !== undefined ? tags_known : {};
-
-            return this._queryTags(entity, metric).then(function (result) {
-
-                var tags = {};
-                _.each(result.data, function (entry) {
-                    if (entry.entity === entity) {
-                        var matched = true;
-
-                        _.each(entry.tags, function (value, key) {
-                            if (key in tags_known && value !== tags_known[key]) {
-                                matched = false;
-                            }
-                        });
-
-                        if (matched) {
-                            _.each(entry.tags, function (value, key) {
-                                if (!(key in tags_known)) {
-                                    if (key in tags) {
-                                        tags[key].push(value);
-                                    } else {
-                                        tags[key] = [value];
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-
-                _.each(tags, function (values, key) {
-                    tags[key] = values.filter(function (elem, pos) {
-                        return values.indexOf(elem) === pos;
-                    });
-                });
-
-                return tags;
-            });
-        };
-
-        AtsdDatasource.prototype.suggestTagKeys = function (entity, metric, tags_known) {
-            return this._suggestTags(entity, metric, tags_known).then(function (tags) {
-                var keys = _.map(tags, function (values, key) {
-                    return key;
-                });
-                console.log('tag keys: ' + JSON.stringify(keys));
-                return keys;
+            };
+            return self.backendSrv.datasourceRequest(options).then(function (result) {
+                return result.data;
             });
         };
 
@@ -444,7 +241,7 @@ define([
                 }
             };
             console.log(options);
-            return backendSrv.datasourceRequest(options).then(function () {
+            return self.backendSrv.datasourceRequest(options).then(function () {
                 return {status: "success", message: "Data source is working", title: "Success"};
             });
         };
@@ -570,10 +367,10 @@ define([
             }
 
             var query = {
-                entity: templateSrv.replace(target.entity),
-                metric: templateSrv.replace(target.metric),
+                entity: self.templateSrv.replace(target.entity),
+                metric: self.templateSrv.replace(target.metric),
 
-                statistic: target.statistic !== undefined ? templateSrv.replace(target.statistic) : 'detail',
+                statistic: target.statistic !== undefined ? self.templateSrv.replace(target.statistic) : 'detail',
                 period: (target.period !== undefined && target.period !== '') ? _parsePeriod(target.period) : {
                     count: 1,
                     unit: 'DAY'
