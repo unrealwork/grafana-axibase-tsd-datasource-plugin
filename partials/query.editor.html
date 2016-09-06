@@ -1,5 +1,5 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="false" has-text-edit-mode="true">
-    <fieldset ng-disabled="ctrl.state.isLoaded">
+    <div ng-if="!ctrl.target.rawQuery">
         <!--Row format-->
         <div class="gf-form" ng-if="ctrl.target.rawQuery">
         <textarea class="gf-form-input" rows="5" ng-model="ctrl.target.target" spellcheck="false"
@@ -8,7 +8,7 @@
         <!--Expanded view-->
 
 
-        <!--Entity row-->
+        <!--Entity, Metric row-->
         <div class="gf-form gf-form--grow">
             <label class="gf-form-label query-keyword width-10">ENTITY</label>
             <input type="text"
@@ -18,17 +18,14 @@
                    bs-typeahead="ctrl.suggest.entities"
                    spellcheck='false'
                    placeholder="entity name">
-        </div>
-
-        <!--Metric row-->
-        <div class="gf-form gf-form--grow">
             <label class="gf-form-label query-keyword width-10">METRIC</label>
+
             <input type="text"
                    class="gf-form-input"
                    ng-model="ctrl.target.metric"
                    spellcheck='false'
                    bs-typeahead="ctrl.suggest.metrics"
-                   placeholder="alias patterns">
+                   placeholder="metric name">
         </div>
 
         <!--Aggregation row-->
@@ -43,5 +40,70 @@
             </div>
         </div>
 
-    </fieldset>
+        <!--Tags row-->
+        <div class="gf-form">
+            <label class="gf-form-label query-keyword width-10">TAGS EDITOR</label>
+            <div class="gf-form-inline">
+                <div class="gf-form" ng-repeat="tag in ctrl.target.tags">
+                    <div class="gf-form-label  query-segment-value"
+                         ng-class="{'query-keyword': ctrl.state.tagRow.tags[$index].selected}"
+                         ng-mouseenter="ctrl.tagMouseover($index)"
+                         ng-mouseleave="ctrl.tagMouseleave($index)"
+                        >
+                        <span>{{tag.key}}</span>
+                        <span class="fa query-segment-operator">=</span>
+                        <span>{{tag.value}}</span>
+                        <span ng-if="ctrl.state.tagRow.tags[$index].selected">
+                            <a class="query-segment-operator"
+                               ng-click="ctrl.tagEdit($index)">
+                                <i class="fa fa-pencil"/>
+
+                            </a>
+                            <a class="query-segment-operator"
+                               ng-click="target.edit = true;">
+                                <i class="fa fa-trash"/>
+
+                            </a>
+                        </span>
+
+                    </div>
+                </div>
+                <a class="gf-form-label pointer"
+                   ng-click="ctrl.showTagEditor($index)"
+                   ng-if="ctrl.state.tagRow.canAdd"
+                >
+                    <i class="fa fa-plus"/>
+                </a>
+            </div>
+        </div>
+        <div class="gf-form gf-form--grow" ng-if="ctrl.state.tagRow.isEdit">
+            <div class="width-5">
+
+            </div>
+            <label class="gf-form-label query-segment-operator width-10">EDIT</label>
+            <input type="text"
+                   class="gf-form-input"
+                   spellcheck='false'
+                   placeholder="name"
+                   ng-model="ctrl.segments.tagEditor.key"
+            >
+            <a class="gf-form-label fa query-segment-operator">
+                =
+            </a>
+            <input type="text"
+                   class="gf-form-input"
+                   spellcheck='false'
+                   placeholder="value"
+                   ng-model="ctrl.segments.tagEditor.value"
+            >
+            <a class="gf-form-label pointer"
+               ng-click="ctrl.saveTag()">
+                <i class="fa fa-check"/>
+            </a>
+            <a class="gf-form-label pointer"
+               ng-click="ctrl.closeTagEditor()">
+                <i class="fa fa-close"/>
+            </a>
+        </div>
+    </div>
 </query-editor-row>

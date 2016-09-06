@@ -160,7 +160,7 @@ define([
 
             var options = {
                 method: 'POST',
-                url: this.url + '/api/v1/series',
+                url: fullUrl('/api/v1/series'),
                 data: {
                     queries: tsQueries
                 },
@@ -178,13 +178,13 @@ define([
         AtsdDatasource.prototype.getEntities = function (params) {
             var options = {
                 method: 'GET',
-                url: self.url + 'api/v1/entities',
+                url: fullUrl('/api/v1/entities'),
                 params: params,
                 headers: {
                     Authorization: self.basicAuth
                 }
             };
-            return self.backendSrv.datasourceRequest(options).then(function (result) {
+            return httpRequest(options).then(function (result) {
                 return result.data;
             });
         };
@@ -192,13 +192,13 @@ define([
         AtsdDatasource.prototype.getMetrics = function (entity, params) {
             var options = {
                 method: 'GET',
-                url: self.url + 'api/v1/entities/' + entity + '/metrics',
+                url: fullUrl('/api/v1/entities/' + entity + '/metrics'),
                 params: params,
                 headers: {
                     Authorization: self.basicAuth
                 }
             };
-            return self.backendSrv.datasourceRequest(options).then(function (result) {
+            return httpRequest(options).then(function (result) {
                 return result.data;
             });
         };
@@ -232,7 +232,7 @@ define([
         AtsdDatasource.prototype.testDatasource = function () {
             var options = {
                 method: 'POST',
-                url: this.url + '/api/v1/series',
+                url: fullUrl('/api/v1/series'),
                 data: {
                     queries: []
                 },
@@ -241,7 +241,7 @@ define([
                 }
             };
             console.log(options);
-            return self.backendSrv.datasourceRequest(options).then(function () {
+            return httpRequest(options).then(function () {
                 return {status: "success", message: "Data source is working", title: "Success"};
             });
         };
@@ -393,6 +393,22 @@ define([
             date = dateMath.parse(date);
 
             return date.toISOString();
+        }
+
+        function httpRequest(options) {
+            if (!options.cache) {
+                options.cache = true;
+            }
+            return self.backendSrv.datasourceRequest(options);
+        }
+
+
+        function fullUrl(part) {
+            var fullUrl = (self.url[self.url.length - 1] != '/') ? self.url + '/' : self.url;
+            if (part.length > 0 && part[0] == '/') {
+                part = part.substr(1, part.length - 1)
+            }
+            return fullUrl + part;
         }
 
         return AtsdDatasource;

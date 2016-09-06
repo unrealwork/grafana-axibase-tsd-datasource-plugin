@@ -17,7 +17,6 @@ define([
 
             function AtsdQueryCtrl($scope, $injector) {
                 _super.call(this, $scope, $injector);
-                console.log(this.target);
                 self = this;
 
                 this.suggest = {
@@ -26,17 +25,32 @@ define([
                     aggregations: aggregateOptions()
                 };
 
-                this.target.metric = undefined;
-                this.target.entity = undefined;
-                this.target.aggregation = this.suggest.aggregations[0]
-
+                this.segments = {};
+                this.segments.tagEditor = {
+                    key: undefined,
+                    value: undefined
+                };
 
                 this.state = {
-                    isLoaded: true
+                    isLoaded: true,
+                    tagRow: {
+                        isEdit: false,
+                        canAdd: true,
+                        tags: []
+                    }
                 };
 
                 this.scope = $scope;
 
+                if (this.target.entity) {
+                    self.entityBlur();
+                }
+
+                this.target.tags = [];
+
+                this.target.aggregation = this.suggest.aggregations[0].value;
+
+                console.log(this.target);
 
                 suggestEntitiesList().then(function (result) {
                     result.forEach(function (item) {
@@ -44,6 +58,7 @@ define([
                     });
                     self.state.isLoaded = false;
                 });
+
             }
 
 
@@ -76,8 +91,57 @@ define([
                 this.panelCtrl.refresh(); // Asks the panel to refresh data.
             };
 
+            AtsdQueryCtrl.prototype.tagEdit = function (index) {
+                console.log('a');
+                this.segments.tagEditor.key = this.target.tags[index].key;
+                this.segments.tagEditor.value = this.target.tags[index].value;
+                this.state.tagRow.tags[index].isEdit = true;
+                this.state.tagRow.isEdit = true;
+                this.state.tagRow.isEdit = true;
+
+            };
+
+            AtsdQueryCtrl.prototype.tagMouseover = function (index) {
+                this.state.tagRow.tags[index].selected = true;
+            };
+
+            AtsdQueryCtrl.prototype.tagMouseleave = function (index) {
+                this.state.tagRow.tags[index].selected = false;
+            };
+
+            AtsdQueryCtrl.prototype.saveTag = function (index) {
+                var editorValue = {
+                    key: this.segments.tagEditor.key,
+                    value: this.segments.tagEditor.value
+                };
+                if (index) {
+                    this.segments.tags[index] = editorValue
+                } else {
+                    this.target.tags.push(editorValue);
+                    this.state.tagRow.tags.push({selected: false});
+                }
+
+                this.state.tagRow.isEdit = false;
+                this.state.tagRow.canAdd = true;
+                self.segments.tagEditor.key = "";
+                self.segments.tagEditor.value = "";
+            };
+
+            AtsdQueryCtrl.prototype.showTagEditor = function (index) {
+                self.state.tagRow.isEdit = true;
+                self.state.tagRow.canAdd = false;
+                this.state.tagRow.isEdit = true;
+                this.state.tagRow.isEdit = true;
+            };
+
+            AtsdQueryCtrl.prototype.closeTagEditor = function () {
+                self.state.tagRow.isEdit = false;
+                self.state.tagRow.canAdd = true;
+                self.segments.tagEditor.key = "";
+                self.segments.tagEditor.value = "";
+            };
+
             AtsdQueryCtrl.templateUrl = 'partials/query.editor.html';
-            <!--Entity row-->
 
             /**
              * Init aggregate options collection
