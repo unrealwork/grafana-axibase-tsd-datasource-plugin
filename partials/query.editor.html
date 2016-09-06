@@ -49,18 +49,18 @@
                          ng-class="{'query-keyword': ctrl.state.tagRow.tags[$index].selected}"
                          ng-mouseenter="ctrl.tagMouseover($index)"
                          ng-mouseleave="ctrl.tagMouseleave($index)"
-                        >
+                    >
                         <span>{{tag.key}}</span>
                         <span class="fa query-segment-operator">=</span>
                         <span>{{tag.value}}</span>
                         <span ng-if="ctrl.state.tagRow.tags[$index].selected">
                             <a class="query-segment-operator"
-                               ng-click="ctrl.tagEdit($index)">
+                               ng-click="ctrl.showTagEditor($index)">
                                 <i class="fa fa-pencil"/>
 
                             </a>
                             <a class="query-segment-operator"
-                               ng-click="target.edit = true;">
+                               ng-click="ctrl.tagRemove($index)">
                                 <i class="fa fa-trash"/>
 
                             </a>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <a class="gf-form-label pointer"
-                   ng-click="ctrl.showTagEditor($index)"
+                   ng-click="ctrl.showTagEditor()"
                    ng-if="ctrl.state.tagRow.canAdd"
                 >
                     <i class="fa fa-plus"/>

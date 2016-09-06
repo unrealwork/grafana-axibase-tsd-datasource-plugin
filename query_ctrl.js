@@ -91,8 +91,14 @@ define([
                 this.panelCtrl.refresh(); // Asks the panel to refresh data.
             };
 
+            AtsdQueryCtrl.prototype.tagRemove = function (index) {
+                this.target.tags.splice(index, 1);
+                this.segments.tagEditor.editIndex = undefined;
+            };
+
             AtsdQueryCtrl.prototype.tagEdit = function (index) {
                 console.log('a');
+                this.segments.tagEditor.editIndex = index;
                 this.segments.tagEditor.key = this.target.tags[index].key;
                 this.segments.tagEditor.value = this.target.tags[index].value;
                 this.state.tagRow.tags[index].isEdit = true;
@@ -109,13 +115,14 @@ define([
                 this.state.tagRow.tags[index].selected = false;
             };
 
-            AtsdQueryCtrl.prototype.saveTag = function (index) {
+            AtsdQueryCtrl.prototype.saveTag = function () {
                 var editorValue = {
                     key: this.segments.tagEditor.key,
                     value: this.segments.tagEditor.value
                 };
-                if (index) {
-                    this.segments.tags[index] = editorValue
+                var index = this.segments.tagEditor.editIndex;
+                if (typeof index !== 'undefined') {
+                    this.target.tags[index] = editorValue
                 } else {
                     this.target.tags.push(editorValue);
                     this.state.tagRow.tags.push({selected: false});
@@ -128,9 +135,15 @@ define([
             };
 
             AtsdQueryCtrl.prototype.showTagEditor = function (index) {
+                if (typeof index !== 'undefined') {
+                    console.log(index);
+                    self.segments.tagEditor.editIndex = index;
+                    this.segments.tagEditor.key = this.target.tags[index].key;
+                    this.segments.tagEditor.value = this.target.tags[index].value;
+                    this.state.tagRow.tags[index].isEdit = true;
+                }
                 self.state.tagRow.isEdit = true;
                 self.state.tagRow.canAdd = false;
-                this.state.tagRow.isEdit = true;
                 this.state.tagRow.isEdit = true;
             };
 
