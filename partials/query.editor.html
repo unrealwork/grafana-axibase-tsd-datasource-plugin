@@ -17,15 +17,19 @@
                    ng-blur="ctrl.entityBlur($event)"
                    bs-typeahead="ctrl.suggest.entities"
                    spellcheck='false'
-                   placeholder="entity name">
+                   placeholder="entity name"
+            >
             <label class="gf-form-label query-keyword width-10">METRIC</label>
 
             <input type="text"
                    class="gf-form-input"
                    ng-model="ctrl.target.metric"
                    spellcheck='false'
+                   ng-blur="ctrl.refresh()"
                    bs-typeahead="ctrl.suggest.metrics"
-                   placeholder="metric name">
+                   placeholder="metric name"
+                   ng-blur="ctrl.metricBlur()"
+            >
         </div>
 
         <!--Aggregation row-->
@@ -35,6 +39,7 @@
                 <select class="gf-form-input gf-size-auto"
                         ng-model="ctrl.target.aggregation"
                         ng-options="item.value as item.label for item in ctrl.suggest.aggregations"
+                        ng-change="ctrl.refresh"
                 >
                 </select>
             </div>
@@ -65,7 +70,6 @@
 
                             </a>
                         </span>
-
                     </div>
                 </div>
                 <a class="gf-form-label pointer"
@@ -86,6 +90,8 @@
                    spellcheck='false'
                    placeholder="name"
                    ng-model="ctrl.segments.tagEditor.key"
+                   bs-typeahead="ctrl.suggest.tags.keys"
+                   ng-blur="ctrl.suggestTags()"
             >
             <a class="gf-form-label fa query-segment-operator">
                 =
@@ -95,6 +101,7 @@
                    spellcheck='false'
                    placeholder="value"
                    ng-model="ctrl.segments.tagEditor.value"
+                   bs-typeahead="ctrl.suggest.tags.values"
             >
             <a class="gf-form-label pointer"
                ng-click="ctrl.saveTag()">

@@ -189,6 +189,7 @@ define([
             });
         };
 
+
         AtsdDatasource.prototype.getMetrics = function (entity, params) {
             var options = {
                 method: 'GET',
@@ -213,6 +214,21 @@ define([
                 } else {
                     return [];
                 }
+            });
+        };
+
+        AtsdDatasource.prototype.getMetricSeries = function (metric, params) {
+            var self = this;
+            var options = {
+                method: 'GET',
+                url: fullUrl('/api/v1/metrics/' + metric + '/series'),
+                params: params,
+                headers: {
+                    Authorization: self.basicAuth
+                }
+            };
+            return httpRequest(options).then(function (result) {
+                return result.data;
             });
         };
 
@@ -376,7 +392,6 @@ define([
                     unit: 'DAY'
                 },
 
-                tags: angular.copy(target.tags),
                 tagCombos: angular.copy(target.tagCombos),
                 implicit: angular.copy(target.implicit),
 
@@ -384,6 +399,11 @@ define([
                     _convertToSeconds(_parsePeriod(target.disconnect)) :
                 24 * 60 * 60
             };
+
+            query.tags = {};
+            target.tags.forEach(function (item) {
+                query.tags[item.key] = item.value;
+            });
 
             return query;
         }
