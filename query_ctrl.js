@@ -16,7 +16,12 @@ define([
                 this.suggest = {
                     metrics: [],
                     entities: [],
-                    aggregations: aggregateOptions(),
+                    aggregation: {
+                        types: aggregateOptions(),
+                        period: {
+                            units: unitOptions()
+                        }
+                    },
                     tags: {
                         keys: [],
                         values: []
@@ -51,9 +56,16 @@ define([
                         this.state.tagRow.tags.push({selected: false});
                     }
                 }
+                console.log(this.target.aggregation);
                 this.target.entity = (this.target.entity) ? this.target.entity : undefined;
                 this.target.metric = (this.target.metric) ? this.target.metric : undefined;
-                this.target.aggregation = (!this.target.aggregation) ? this.target.aggregation : this.suggest.aggregations[0].value;
+                this.target.aggregation = (this.target.aggregation) ? this.target.aggregation : {
+                    type: this.suggest.aggregation.types[0].value,
+                    period: {
+                        count: 1,
+                        unit: this.suggest.aggregation.period.units[0].value
+                    }
+                };
 
                 console.log(this.target);
 
@@ -70,7 +82,7 @@ define([
             AtsdQueryCtrl.prototype.constructor = AtsdQueryCtrl;
 
             AtsdQueryCtrl.prototype.entityBlur = function ($event) {
-                this.panelCtrl.refresh();
+                this.refresh();
                 console.log($event);
                 var self = this;
                 this.datasource.getMetrics(this.target.entity, {}).then(function (result) {
@@ -83,7 +95,8 @@ define([
             };
 
             AtsdQueryCtrl.prototype.metricBlur = function () {
-
+                this.refresh();
+                this.suggestTags();
             };
 
 
@@ -104,6 +117,7 @@ define([
             AtsdQueryCtrl.prototype.tagRemove = function (index) {
                 this.target.tags.splice(index, 1);
                 this.segments.tagEditor.editIndex = undefined;
+                this.refresh();
             };
 
             AtsdQueryCtrl.prototype.tagEdit = function (index) {
@@ -148,6 +162,12 @@ define([
                 this.state.tagRow.canAdd = true;
                 this.segments.tagEditor.key = "";
                 this.segments.tagEditor.value = "";
+                this.refresh();
+            };
+
+            AtsdQueryCtrl.prototype.removeAllTags = function () {
+                this.closeTagEditor();
+                this.target.tags.length = 0;
             };
 
             AtsdQueryCtrl.prototype.showTagEditor = function (index) {
@@ -213,29 +233,76 @@ define([
 
             AtsdQueryCtrl.templateUrl = 'partials/query.editor.html';
 
-            /**
-             * Init aggregate options collection
-             * for select element
-             *
-             * @param scope
-             */
             function aggregateOptions() {
-                return [{
-                    id: 1,
-                    label: 'Detail',
-                    value: {
-                        name: 'detail'
-                    }
-                }, {
-                    id: 2,
-                    label: 'Count',
-                    value: {
-                        name: 'count'
-                    }
-                }
+                var aggregateTypes = [
+                    'Detail',
+                    'Count',
+                    'Min',
+                    'Max',
+                    'Avg',
+                    'Median',
+                    'Sum',
+                    'Percentile_999',
+                    'Percentile_995',
+                    'Percentile_99',
+                    'Percentile_95',
+                    'Percentile_90',
+                    'Percentile_75',
+                    'First',
+                    'Last',
+                    'Delta',
+                    'Wavg',
+                    'Wtavg',
+                    'Standard_deviation'
                 ];
+                return _.map(aggregateTypes, function (item) {
+                    return {
+                        label: item,
+                        value: item.toUpperCase()
+                    }
+                })
             }
 
+            function unitOptions() {
+                return [{
+                    id: 2,
+                    label: 'MILLISECOND',
+                    value: 'MILLISECOND'
+                }, {
+                    id: 3,
+                    label: 'SECOND',
+                    value: 'SECOND'
+
+                }, {
+                    id: 4,
+                    label: 'MINUTE',
+                    value: 'MINUTE'
+                }, {
+                    id: 5,
+                    label: 'HOUR',
+                    value: 'HOUR'
+                }, {
+                    id: 6,
+                    label: 'DAY',
+                    value: 'DAY'
+                }, {
+                    id: 7,
+                    label: 'WEEK',
+                    value: 'WEEK'
+                }, {
+                    id: 7,
+                    label: 'MONTH',
+                    value: 'MONTH'
+                }, {
+                    id: 8,
+                    label: 'QUARTER',
+                    value: 'QUARTER'
+                }, {
+                    id: 9,
+                    label: 'YEAR',
+                    value: 'YEAR'
+                }];
+            }
 
             return AtsdQueryCtrl;
         })(sdk.QueryCtrl);

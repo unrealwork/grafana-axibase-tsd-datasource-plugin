@@ -33,25 +33,42 @@
         </div>
 
         <!--Aggregation row-->
-        <div class="gf-form gf-form--grow">
+        <div class="gf-form">
             <label class="gf-form-label query-keyword width-10">AGGREGATION</label>
-            <div class="gf-form-select-wrapper">
+            <div class="gf-form-select-wrapper query">
                 <select class="gf-form-input gf-size-auto"
-                        ng-model="ctrl.target.aggregation"
-                        ng-options="item.value as item.label for item in ctrl.suggest.aggregations"
-                        ng-change="ctrl.refresh"
+                        ng-model="ctrl.target.aggregation.type"
+                        ng-options="item.value as item.label for item in ctrl.suggest.aggregation.types"
+                        ng-change="ctrl.refresh()"
                 >
                 </select>
             </div>
+            <label class="gf-form-label query-keyword width-10">PERIOD</label>
+            <input class="gf-form-input gf-size-auto"
+                   type="number"
+                   name="count"
+                   min="1"
+                   ng-model="ctrl.target.aggregation.period.count"
+                   ng-change="ctrl.refresh()"
+            >
+            <div class="gf-form-select-wrapper query">
+                <select class="gf-form-input gf-size-auto"
+                        ng-model="ctrl.target.aggregation.period.unit"
+                        ng-options="item.value as item.label for item in ctrl.suggest.aggregation.period.units"
+                        ng-change="ctrl.refresh()"
+                >
+                </select>
+            </div>
+
         </div>
 
         <!--Tags row-->
         <div class="gf-form">
-            <label class="gf-form-label query-keyword width-10">TAGS EDITOR</label>
+            <label class="gf-form-label query-keyword width-10">TAGS</label>
             <div class="gf-form-inline">
                 <div class="gf-form" ng-repeat="tag in ctrl.target.tags">
                     <div class="gf-form-label  query-segment-value"
-                         ng-class="{'query-keyword': ctrl.state.tagRow.tags[$index].selected}"
+                         ng-class="{'query-segment-operator': ctrl.state.tagRow.tags[$index].selected}"
                          ng-mouseenter="ctrl.tagMouseover($index)"
                          ng-mouseleave="ctrl.tagMouseleave($index)"
                     >
@@ -78,13 +95,19 @@
                 >
                     <i class="fa fa-plus"/>
                 </a>
+                <a class="gf-form-label pointer"
+                   ng-click="ctrl.removeAllTags()"
+                   ng-if="ctrl.state.tagRow.canAdd"
+                >
+                    <i class="fa fa-trash"/>
+                </a>
             </div>
         </div>
         <div class="gf-form gf-form--grow" ng-if="ctrl.state.tagRow.isEdit">
             <div class="width-5">
 
             </div>
-            <label class="gf-form-label query-segment-operator width-10">EDIT</label>
+            <label class="gf-form-label query-segment-operator width-10">{{ctrl.segments.tagEditor.editIndex>=0?'EDIT':'NEW'}}</label>
             <input type="text"
                    class="gf-form-input"
                    spellcheck='false'

@@ -111,8 +111,8 @@ define([
                                             metric: query.metric,
                                             tags: tags,
                                             aggregate: {
-                                                type: query.statistic.toUpperCase(),
-                                                interval: {
+                                                type: query.statistic,
+                                                period: {
                                                     count: query.period.count,
                                                     unit: query.period.unit
                                                 }
@@ -138,8 +138,8 @@ define([
                                 metric: query.metric,
                                 tags: tags,
                                 aggregate: {
-                                    type: query.statistic.toUpperCase(),
-                                    interval: {
+                                    type: query.statistic,
+                                    period: {
                                         count: query.period.count,
                                         unit: query.period.unit
                                     }
@@ -160,7 +160,7 @@ define([
 
             var options = {
                 method: 'POST',
-                url: fullUrl('/api/v1/series'),
+                url: fullUrl('/api/v1/series/'),
                 data: {
                     queries: tsQueries
                 },
@@ -301,49 +301,7 @@ define([
         }
 
         function _parsePeriod(period) {
-            var count = '';
-            var unit;
-
-            for (var i = 0; i < period.length; i++) {
-                var c = period.charAt(i);
-
-                if (!isNaN(c)) {
-                    count += c;
-                } else {
-                    unit = c;
-
-                    switch (unit) {
-                        case 'y':
-                            unit = 'YEAR';
-                            break;
-                        case 'M':
-                            unit = 'MONTH';
-                            break;
-                        case 'w':
-                            unit = 'WEEK';
-                            break;
-                        case 'd':
-                            unit = 'DAY';
-                            break;
-                        case 'h':
-                        case 'H':
-                            unit = 'HOUR';
-                            break;
-                        case 'm':
-                            unit = 'MINUTE';
-                            break;
-                        case 's':
-                            unit = 'SECOND';
-                            break;
-                        default:
-                            unit = '';
-                    }
-
-                    break;
-                }
-            }
-
-            return {count: parseInt(count), unit: unit};
+            return {count: period.count, unit: period.unit};
         }
 
         function _convertToSeconds(interval) {
@@ -381,13 +339,14 @@ define([
             if (!target.metric || !target.entity || target.hide) {
                 return null;
             }
+            console.log(target.aggregation.type);
 
             var query = {
                 entity: self.templateSrv.replace(target.entity),
                 metric: self.templateSrv.replace(target.metric),
 
-                statistic: target.statistic !== undefined ? self.templateSrv.replace(target.statistic) : 'detail',
-                period: (target.period !== undefined && target.period !== '') ? _parsePeriod(target.period) : {
+                statistic: target.aggregation.type !== undefined ? target.aggregation.type : 'DETAIL',
+                period: (target.aggregation.period !== undefined && target.aggregation.type !== undefined) ? target.aggregation.period : {
                     count: 1,
                     unit: 'DAY'
                 },
