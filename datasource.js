@@ -55,7 +55,6 @@ define([
             });
 
             return this._performTimeSeriesQuery(queries, start, end).then(function (response) {
-                console.log(response);
                 if (response.data === undefined) {
                     return {data: []};
                 }
@@ -107,13 +106,7 @@ define([
                                             metric: query.metric,
                                             tags: tags,
                                             timeFormat: 'milliseconds',
-                                            aggregate: {
-                                                type: query.statistic,
-                                                period: {
-                                                    count: query.period.count,
-                                                    unit: query.period.unit
-                                                }
-                                            }
+                                            aggregate: query.aggregation
                                         }
                                     );
                                 }
@@ -135,13 +128,7 @@ define([
                                 metric: query.metric,
                                 tags: tags,
                                 timeFormat: 'milliseconds',
-                                aggregate: {
-                                    type: query.statistic,
-                                    period: {
-                                        count: query.period.count,
-                                        unit: query.period.unit
-                                    }
-                                }
+                                aggregate: query.aggregation
                             }
                         );
                     }
@@ -244,11 +231,10 @@ define([
 
         function _transformMetricData(metricData, disconnect) {
 
-            var dps;
             var ret = [];
 
-            dps = _.map(metricData.data, function (item) {
-                return [item.t, item.v];
+            var dps = _.map(metricData.data, function (item) {
+                return [item.v, item.t];
             });
 
             var name = metricData.entity + ': ' + metricData.metric;
@@ -256,7 +242,6 @@ define([
             _.each(metricData.tags, function (value, key) {
                 name += ', ' + key + '=' + value;
             });
-            console.log(dps);
             return {target: name, datapoints: dps};
         }
 
@@ -304,12 +289,7 @@ define([
                 entity: self.templateSrv.replace(target.entity),
                 metric: self.templateSrv.replace(target.metric),
 
-                statistic: target.aggregation.type !== undefined ? target.aggregation.type : 'DETAIL',
-                period: (target.aggregation.period !== undefined && target.aggregation.type !== undefined) ? target.aggregation.period : {
-                    count: 1,
-                    unit: 'DAY'
-                },
-
+                aggregation: target.aggregation.type !== undefined ? target.aggregation : undefined,
                 tagCombos: angular.copy(target.tagCombos),
                 implicit: angular.copy(target.implicit),
                 disconnect: (target.disconnect !== undefined && target.disconnect !== '') ?

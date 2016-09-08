@@ -56,18 +56,16 @@ define([
                         this.state.tagRow.tags.push({selected: false});
                     }
                 }
-                console.log(this.target.aggregation);
                 this.target.entity = (this.target.entity) ? this.target.entity : undefined;
                 this.target.metric = (this.target.metric) ? this.target.metric : undefined;
                 this.target.aggregation = (this.target.aggregation) ? this.target.aggregation : {
                     type: this.suggest.aggregation.types[0].value,
                     period: {
                         count: 1,
-                        unit: this.suggest.aggregation.period.units[0].value
+                        unit: this.suggest.aggregation.period.units[3].value
                     }
                 };
 
-                console.log(this.target);
 
                 this.datasource.getEntities({expression: 'name LIKE \'*\'',}).then(function (result) {
                     result.forEach(function (item) {
@@ -83,10 +81,8 @@ define([
 
             AtsdQueryCtrl.prototype.entityBlur = function ($event) {
                 this.refresh();
-                console.log($event);
                 var self = this;
                 this.datasource.getMetrics(this.target.entity, {}).then(function (result) {
-                    console.log(result);
                     self.suggest.metrics.length = 0;
                     result.forEach(function (item) {
                         self.suggest.metrics.push(item.name);
@@ -121,7 +117,6 @@ define([
             };
 
             AtsdQueryCtrl.prototype.tagEdit = function (index) {
-                console.log('a');
                 this.segments.tagEditor.editIndex = index;
                 this.segments.tagEditor.key = this.target.tags[index].key;
                 this.segments.tagEditor.value = this.target.tags[index].value;
@@ -173,7 +168,6 @@ define([
 
             AtsdQueryCtrl.prototype.showTagEditor = function (index) {
                 if (typeof index !== 'undefined') {
-                    console.log(index);
                     this.segments.tagEditor.key = this.target.tags[index].key;
                     this.segments.tagEditor.value = this.target.tags[index].value;
                     this.state.tagRow.tags[index].isEdit = true;
@@ -207,7 +201,6 @@ define([
                         self.suggest.tags.keys.length = 0;
                         self.suggest.tags.values.length = 0;
                         series.forEach(function (item) {
-                            console.log(item);
                             for (var key in item.tags) {
                                 if (!self.suggest.tags.keys.includes(key)) {
                                     self.suggest.tags.keys.push(key);
@@ -236,6 +229,7 @@ define([
 
             function aggregateOptions() {
                 var aggregateTypes = [
+                    undefined,
                     'Detail',
                     'Count',
                     'Min',
@@ -257,10 +251,14 @@ define([
                     'Standard_deviation'
                 ];
                 return _.map(aggregateTypes, function (item) {
-                    return {
+
+                    return (item) ? {
                         label: item,
                         value: item.toUpperCase()
-                    }
+                    } : {
+                        label: 'None',
+                        value: item
+                    };
                 })
             }
 
