@@ -9,7 +9,6 @@ define([
 
         function AtsdDatasource(instanceSettings, $q, backendSrv, templateSrv) {
             this.type = 'atsd';
-            console.log(instanceSettings);
             this.url = instanceSettings.url;
             this.basicAuth = instanceSettings.basicAuth;
             this.name = instanceSettings.name;
@@ -27,12 +26,9 @@ define([
         AtsdDatasource.prototype.dropCache = function () {
             this.recent = {};
             this.recentTags = {};
-            console.log('cache dropped');
         };
 
         AtsdDatasource.prototype.query = function (options) {
-            console.log('options: ' + JSON.stringify(options));
-
             var start = _convertToAtsdTime(options.range.from);
             var end = _convertToAtsdTime(options.range.to);
             var qs = [];
@@ -59,7 +55,7 @@ define([
             });
 
             return this._performTimeSeriesQuery(queries, start, end).then(function (response) {
-
+                console.log(response);
                 if (response.data === undefined) {
                     return {data: []};
                 }
@@ -68,7 +64,7 @@ define([
 
                 var result = _.map(response.data, function (metricData) {
                     return _transformMetricData(metricData, disconnect);
-                })[0];
+                });
 
                 result.sort(function (a, b) {
                     var nameA = a.target.toLowerCase();
@@ -110,6 +106,7 @@ define([
                                             entity: query.entity,
                                             metric: query.metric,
                                             tags: tags,
+                                            timeFormat: 'milliseconds',
                                             aggregate: {
                                                 type: query.statistic,
                                                 period: {
@@ -137,6 +134,7 @@ define([
                                 entity: query.entity,
                                 metric: query.metric,
                                 tags: tags,
+                                timeFormat: 'milliseconds',
                                 aggregate: {
                                     type: query.statistic,
                                     period: {
@@ -160,10 +158,8 @@ define([
 
             var options = {
                 method: 'POST',
-                url: fullUrl('/api/v1/series/'),
-                data: {
-                    queries: tsQueries
-                },
+                url: fullUrl('/api/v1/series/query'),
+                data: tsQueries,
                 headers: {
                     Authorization: this.basicAuth
                 }
@@ -204,19 +200,6 @@ define([
             });
         };
 
-        AtsdDatasource.prototype.suggestTagValues = function (entity, metric, tags_known, name) {
-            name = name !== undefined ? name : '';
-
-            return this._suggestTags(entity, metric, tags_known).then(function (tags) {
-                console.log('tag values: ' + JSON.stringify(tags[name]));
-                if (name in tags) {
-                    return tags[name];
-                } else {
-                    return [];
-                }
-            });
-        };
-
         AtsdDatasource.prototype.getMetricSeries = function (metric, params) {
             var self = this;
             var options = {
@@ -240,7 +223,6 @@ define([
                         tags.push(entry.tags);
                     }
                 });
-                console.log('tags: ' + JSON.stringify(tags));
                 return tags;
             });
         };
@@ -248,10 +230,8 @@ define([
         AtsdDatasource.prototype.testDatasource = function () {
             var options = {
                 method: 'POST',
-                url: fullUrl('/api/v1/series'),
-                data: {
-                    queries: []
-                },
+                url: fullUrl('/api/v1/series/query'),
+                data: [],
                 headers: {
                     Authorization: this.basicAuth
                 }
@@ -263,41 +243,21 @@ define([
         };
 
         function _transformMetricData(metricData, disconnect) {
+
             var dps;
             var ret = [];
 
-            _.each(metricData, function (dataset) {
-                dps = [];
-
-                if (disconnect > 0) {
-                    if (dataset.data.length > 0) {
-                        dps.push([dataset.data[0].v, dataset.data[0].t]);
-
-                        for (var i = 1; i < dataset.data.length; i++) {
-                            if (dataset.data[i].t - dataset.data[i - 1].t > disconnect * 1000) {
-                                dps.push([null, dataset.data[i - 1].t + 1]);
-                                dps.push([null, dataset.data[i].t - 1]);
-                            }
-
-                            dps.push([dataset.data[i].v, dataset.data[i].t]);
-                        }
-                    }
-                } else {
-                    _.each(dataset.data, function (data) {
-                        dps.push([data.v, data.t]);
-                    });
-                }
-
-                var name = dataset.entity + ': ' + dataset.metric;
-
-                _.each(dataset.tags, function (value, key) {
-                    name += ', ' + key + '=' + value;
-                });
-
-                ret.push({target: name, datapoints: dps});
+            dps = _.map(metricData.data, function (item) {
+                return [item.t, item.v];
             });
 
-            return ret;
+            var name = metricData.entity + ': ' + metricData.metric;
+
+            _.each(metricData.tags, function (value, key) {
+                name += ', ' + key + '=' + value;
+            });
+            console.log(dps);
+            return {target: name, datapoints: dps};
         }
 
         function _parsePeriod(period) {
@@ -339,7 +299,6 @@ define([
             if (!target.metric || !target.entity || target.hide) {
                 return null;
             }
-            console.log(target.aggregation.type);
 
             var query = {
                 entity: self.templateSrv.replace(target.entity),
@@ -353,7 +312,6 @@ define([
 
                 tagCombos: angular.copy(target.tagCombos),
                 implicit: angular.copy(target.implicit),
-
                 disconnect: (target.disconnect !== undefined && target.disconnect !== '') ?
                     _convertToSeconds(_parsePeriod(target.disconnect)) :
                 24 * 60 * 60

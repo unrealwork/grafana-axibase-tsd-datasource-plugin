@@ -168,6 +168,7 @@ define([
             AtsdQueryCtrl.prototype.removeAllTags = function () {
                 this.closeTagEditor();
                 this.target.tags.length = 0;
+                this.refresh();
             };
 
             AtsdQueryCtrl.prototype.showTagEditor = function (index) {
