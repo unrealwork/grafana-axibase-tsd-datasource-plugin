@@ -1,20 +1,22 @@
 {
-  "name": "Axibase TSD",
+  "name": "Axibase Time Series Database",
   "type": "datasource",
   "id": "atsd",
   "staticRoot": ".",
   "metrics": true,
   "annotations": false,
   "info": {
-    "description": "Axibase Time Series Data source plugin",
+    "description": "Axibase Time Series Database source plugin",
     "author": {
-      "name": "Axibase Inc.",
-      "url": "http://axibase.com/"
+      "name": "Axibase",
+      "url": "https://axibase.com/products/axibase-time-series-database/"
     },
     "keywords": [
       "axibase",
       "time-series",
-      "atsd"
+      "atsd",
+      "hbase",
+      "hadoop"
     ],
     "logos": {
       "small": "img/axibase_logo_small.svg",
@@ -30,8 +32,8 @@
         "url": "https://github.com/grafana/simple-json-datasource/blob/master/LICENSE"
       }
     ],
-    "version": "0.0.1",
-    "updated": "2016-05-11"
+    "version": "0.1.0",
+    "updated": "2016-09-08"
   },
   "dependencies": {
     "grafanaVersion": "3.x.x",
