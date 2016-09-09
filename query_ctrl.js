@@ -230,7 +230,6 @@ define([
             function aggregateOptions() {
                 var aggregateTypes = [
                     undefined,
-                    'Detail',
                     'Count',
                     'Min',
                     'Max',
